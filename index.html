@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora AI - Premium</title>
+    
+    <!-- Premium Sparkle Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        apple: { green: '#34C759', blue: '#007AFF', dark: '#050505', light: '#FBFBFD' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #FBFBFD; --text-main: #1D1D1F; --text-muted: #86868B;
+            --glass-bg: rgba(255, 255, 255, 0.6); --glass-border: rgba(255, 255, 255, 0.8); --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+            --bot-bubble-bg: #E9E9EB; --bot-bubble-text: #000000; --user-bubble-bg: #34C759; --user-bubble-text: #FFFFFF;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --dot-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark {
+            --bg-color: #050505; --text-main: #F5F5F7; --text-muted: #86868B;
+            --glass-bg: rgba(20, 20, 22, 0.45); --glass-border: rgba(255, 255, 255, 0.08); --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            --bot-bubble-bg: #2C2C2E; --bot-bubble-text: #FFFFFF; --dot-color: rgba(255, 255, 255, 0.06);
+        }
+
+        body { 
+            background-color: var(--bg-color); color: var(--text-main); 
+            transition: background-color 0.5s ease, color 0.5s ease; 
+            overflow: hidden; margin: 0; height: 100vh; display: flex; 
+            -webkit-font-smoothing: antialiased; cursor: none; 
+        }
+
+        .ambient-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; opacity: 0; animation: fadeInAmbient 2s var(--ease-out-expo) 0.5s forwards; }
+        @keyframes fadeInAmbient { to { opacity: 0.7; } }
+        .dark .ambient-bg { opacity: 0; animation: fadeInAmbientDark 2s var(--ease-out-expo) 0.5s forwards; }
+        @keyframes fadeInAmbientDark { to { opacity: 0.25; } }
+
+        .blob { position: absolute; filter: blur(90px); border-radius: 50%; animation: float 25s infinite ease-in-out alternate; }
+        .blob-1 { top: -10%; left: -10%; width: 55vw; height: 55vw; background: radial-gradient(circle, rgba(52,199,89,0.2) 0%, transparent 70%); }
+        .blob-2 { bottom: -20%; right: -10%; width: 65vw; height: 65vw; background: radial-gradient(circle, rgba(0,122,255,0.2) 0%, transparent 70%); animation-delay: -5s; }
+        .blob-3 { top: 40%; left: 30%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(142,45,226,0.2) 0%, transparent 70%); animation-delay: -2s; }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10%, 15%) scale(1.15); } }
+
+        .dot-pattern { 
+            position: fixed; inset: 0; z-index: -3; 
+            background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px); 
+            background-size: 32px 32px; pointer-events: none; 
+            animation: flowDots 15s linear infinite; will-change: background-position; 
+        }
+        @keyframes flowDots { 100% { background-position: 32px 32px; } }
+
+        .reveal-text { opacity: 0; transform: translateY(30px); animation: revealUp 1.2s var(--ease-out-expo) forwards; }
+        .reveal-delay-1 { animation-delay: 0.1s; } .reveal-delay-2 { animation-delay: 0.3s; }
+        @keyframes revealUp { to { opacity: 1; transform: translateY(0); } }
+
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+
+        .sidebar { width: 76px; height: calc(100vh - 32px); margin: 16px; border-radius: 24px; display: flex; flex-direction: column; padding: 24px 0; z-index: 50; transition: width 0.5s var(--ease-out-expo); overflow: hidden; position: relative; }
+        .sidebar:hover { width: 260px; }
+        .nav-item { display: flex; align-items: center; width: 100%; padding: 0 16px; margin-bottom: 8px; cursor: pointer; position: relative; min-height: 44px; }
+        .nav-icon { min-width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all 0.3s ease; z-index: 2;}
+        .nav-item:hover .nav-icon, .nav-item.active .nav-icon { color: var(--text-main); background: rgba(150, 150, 150, 0.15); }
+        .nav-text { white-space: nowrap; margin-left: 16px; font-weight: 500; opacity: 0; transform: translateX(-15px); transition: all 0.4s var(--ease-out-expo); color: var(--text-main); pointer-events: none; }
+        .sidebar:hover .nav-text { opacity: 1; transform: translateX(0); }
+        
+        .tilt-effect { transition: transform 0.4s var(--ease-out-expo); transform-style: preserve-3d; will-change: transform; }
+        .magnetic { transition: transform 0.4s var(--ease-spring); will-change: transform; display: inline-flex; }
+
+        .main-content { flex: 1; position: relative; display: flex; flex-direction: column; height: 100vh; }
+        .hero-section { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); width: 100%; display: flex; flex-direction: column; align-items: center; transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo); }
+        .hero-section.hidden-hero { opacity: 0; transform: translate(-50%, -70%) scale(0.95); pointer-events: none; }
+
+        .input-layout-wrapper { position: absolute; left: 0; width: 100%; padding: 0 24px; display: flex; flex-direction: column; align-items: center; transition: bottom 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo); z-index: 100; }
+        .input-state-center { bottom: 43%; transform: translateY(50%); }
+        .input-state-bottom { bottom: 40px; transform: translateY(0); }
+        .input-size-wrapper { width: 100%; transition: max-width 0.8s var(--ease-out-expo); transform-style: preserve-3d; will-change: transform; }
+        .input-state-center .input-size-wrapper { max-width: 640px; }
+        .input-state-bottom .input-size-wrapper { max-width: 800px; }
+
+        .input-glow-container { position: relative; border-radius: 99px; background: transparent; }
+        .input-glow-container::before { content: ''; position: absolute; inset: -2px; border-radius: 100px; background: linear-gradient(90deg, #34C759, #007AFF, #34C759); background-size: 200% auto; z-index: -1; opacity: 0; filter: blur(8px); transition: opacity 0.4s ease; animation: gradientFlow 3s linear infinite; }
+        .input-glow-container:focus-within::before { opacity: 0.6; }
+        @keyframes gradientFlow { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+
+        .search-input { width: 100%; padding: 20px 24px 20px 56px; border-radius: 99px; font-size: 1.1rem; color: var(--text-main); outline: none; transition: all 0.3s ease; border: 1px solid var(--glass-border); }
+        .search-input::placeholder { color: var(--text-muted); font-weight: 300; }
+        .recoil { transform: scale(0.97); transition: transform 0.15s ease-out; }
+
+        .chat-area { position: absolute; top: 0; left: 0; width: 100%; height: calc(100vh - 140px); padding: 24px; padding-top: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.6s ease 0.4s; scroll-behavior: smooth; }
+        .chat-area.active { opacity: 1; pointer-events: auto; }
+        .chat-area::-webkit-scrollbar { width: 0px; background: transparent; }
+        .chat-content-wrap { width: 100%; max-width: 900px; display: flex; flex-direction: column; }
+
+        .message-row { display: flex; width: 100%; margin-bottom: 24px; }
+        .message-row.user { justify-content: flex-end; }
+        .message-row.bot { justify-content: flex-start; }
+
+        .bubble { max-width: 75%; padding: 14px 20px; font-size: 1rem; line-height: 1.5; position: relative; word-wrap: break-word; opacity: 0; transform-origin: bottom center; animation: springPopIn 0.7s var(--ease-spring) forwards; }
+        .message-row.user .bubble { transform-origin: bottom right; }
+        .message-row.bot .bubble { transform-origin: bottom left; }
+        @keyframes springPopIn { 0% { opacity: 0; transform: scale(0.8) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .bubble-user { background-color: var(--user-bubble-bg); color: var(--user-bubble-text); border-radius: 24px 24px 6px 24px; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.2); }
+        .bubble-bot { background-color: var(--bot-bubble-bg); color: var(--bot-bubble-text); border-radius: 24px 24px 24px 6px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+
+        .typing-bubble { display: flex; align-items: center; gap: 6px; padding: 18px 24px; background: linear-gradient(90deg, var(--bot-bubble-bg) 0%, rgba(255,255,255,0.1) 50%, var(--bot-bubble-bg) 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear, springPopIn 0.7s var(--ease-spring) forwards; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; background-color: var(--text-muted); animation: blink 1.4s infinite both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }
+
+        .cursor-dot, .cursor-outline { position: fixed; top: 0; left: 0; border-radius: 50%; z-index: 999999; pointer-events: none; mix-blend-mode: difference; }
+        .cursor-dot { width: 8px; height: 8px; background-color: #fff; }
+        .cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.5); transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; }
+        body.cursor-hover .cursor-outline { width: 70px; height: 70px; background-color: rgba(255, 255, 255, 1); border-color: transparent; }
+        @media (pointer: coarse) { .cursor-dot, .cursor-outline { display: none !important; } body, html { cursor: auto; } }
+
+        /* Custom Modals & Toasts for Premium UX */
+        .custom-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .custom-modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: 0 20px 40px rgba(0,0,0,0.2); border-radius: 24px; padding: 24px; width: 90%; max-width: 360px; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .custom-modal.active .modal-content { transform: scale(1); }
+        
+        .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); color: var(--text-main); padding: 12px 24px; border-radius: 99px; box-shadow: var(--glass-shadow); opacity: 0; pointer-events: none; transition: all 0.4s var(--ease-spring); z-index: 10000; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .history-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; background: var(--glass-bg); padding-left: 8px; border-radius: 8px; backdrop-filter: blur(10px); }
+        .nav-item:hover .history-actions { opacity: 1; pointer-events: auto; }
+        .action-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all 0.2s; }
+        .action-btn:hover { background: rgba(150, 150, 150, 0.2); color: var(--text-main); }
+        .action-btn.pin-active { color: #007AFF; }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-dot" class="cursor-dot"></div>
+    <div id="cursor-outline" class="cursor-outline"></div>
+    <div class="dot-pattern"></div>
+    
+    <div class="ambient-bg" id="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div id="theme-toggle" class="fixed top-6 right-6 z-50 cursor-pointer interactable w-12 h-12 flex items-center justify-center rounded-full glass-panel hover:bg-black/5 dark:hover:bg-white/10 magnetic transition-all duration-300 shadow-lg">
+        <i class="ph ph-moon-stars text-2xl dark:hidden block text-gray-700"></i>
+        <i class="ph ph-sun text-2xl hidden dark:block text-gray-200"></i>
+    </div>
+
+    <aside class="sidebar glass-panel">
+        <div class="nav-item mb-6" style="padding-left: 12px;">
+            <div class="nav-icon cursor-default" style="background: transparent;">
+                <i class="ph-fill ph-sparkle text-3xl text-apple-green"></i>
+            </div>
+            <span class="nav-text text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 tracking-tight">Nexora AI</span>
+        </div>
+
+        <div class="flex-1 w-full flex flex-col items-start mt-2" id="sidebar-history-container">
+            <div class="nav-item interactable" id="new-chat-btn">
+                <div class="nav-icon magnetic"><i class="ph ph-chat-centered-text text-xl"></i></div>
+                <span class="nav-text">New Chat</span>
+            </div>
+            <div class="nav-item interactable" id="quiz-mode-btn">
+                <div class="nav-icon magnetic"><i class="ph ph-exam text-xl text-purple-500"></i></div>
+                <span class="nav-text font-medium text-purple-500">Quiz Mode</span>
+            </div>
+            <!-- Dynamic History Appended Here -->
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="hero-section text-center" id="hero-section">
+            <h1 class="text-5xl md:text-6xl font-medium tracking-tight mb-3 reveal-text reveal-delay-1">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-purple-500 to-blue-500">Hello, Innovator.</span>
+            </h1>
+            <h2 class="text-2xl md:text-3xl font-light text-gray-500 dark:text-gray-400 reveal-text reveal-delay-2">
+                What SDG challenge shall we tackle today?
+            </h2>
+        </div>
+
+        <div class="chat-area" id="chat-area">
+            <div class="chat-content-wrap" id="chat-content-wrap">
+                <div class="w-full flex justify-center pb-10 opacity-50">
+                    <span class="text-xs uppercase tracking-widest font-semibold">Initiated Secure Session</span>
+                </div>
+                <!-- Bubbles go here -->
+            </div>
+        </div>
+
+        <div class="input-layout-wrapper input-state-center" id="input-wrapper">
+            <div class="input-size-wrapper tilt-effect" id="tilt-container">
+                <div class="input-glow-container">
+                    <form id="chat-form" class="relative w-full rounded-full glass-panel" style="border: none; overflow: visible;">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
+                            <button type="button" class="interactable text-gray-400 hover:text-green-500 transition-colors cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 magnetic">
+                                <i class="ph ph-plus text-2xl"></i>
+                            </button>
+                        </div>
+                        
+                        <input type="text" id="user-input" class="interactable search-input glass-panel" style="padding-left: 64px; padding-right: 64px;" placeholder="Ask EduNova or type a topic..." autocomplete="off">
+                        
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
+                            <button type="submit" id="send-btn" class="interactable text-gray-400 hover:text-green-500 transition-colors cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 magnetic">
+                                <i id="mic-icon" class="ph ph-microphone text-2xl block"></i>
+                                <i id="send-icon" class="ph-fill ph-arrow-up-circle text-3xl text-apple-green hidden drop-shadow-md"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-4 text-xs opacity-40 font-medium tracking-wide reveal-text reveal-delay-2">
+                AI systems may provide inaccurate data. Verify official government sources.
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Rename Modal -->
+    <div id="rename-modal" class="custom-modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Rename Chat</h3>
+            <input type="text" id="rename-input" class="interactable w-full bg-black/5 dark:bg-white/10 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 mb-6 text-gray-900 dark:text-gray-100 outline-none focus:border-apple-blue transition-colors" placeholder="New chat name...">
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModals()" class="interactable px-5 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 transition">Cancel</button>
+                <button id="confirm-rename-btn" class="interactable px-5 py-2.5 rounded-xl font-medium bg-apple-blue text-white shadow-lg shadow-blue-500/30 hover:opacity-90 transition">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Delete Modal -->
+    <div id="delete-modal" class="custom-modal">
+        <div class="modal-content">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                <i class="ph ph-warning-circle text-2xl text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Delete Chat?</h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">This action cannot be undone. The chat history will be permanently removed.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModals()" class="interactable px-5 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 transition">Cancel</button>
+                <button id="confirm-delete-btn" class="interactable px-5 py-2.5 rounded-xl font-medium bg-red-500 text-white shadow-lg shadow-red-500/30 hover:opacity-90 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="ph-fill ph-check-circle text-apple-green text-xl"></i>
+        <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const htmlTag = document.documentElement;
+            const themeToggle = document.getElementById('theme-toggle');
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const micIcon = document.getElementById('mic-icon');
+            const sendIcon = document.getElementById('send-icon');
+            
+            const heroSection = document.getElementById('hero-section');
+            const inputWrapper = document.getElementById('input-wrapper');
+            const chatArea = document.getElementById('chat-area');
+            const chatContentWrap = document.getElementById('chat-content-wrap');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const quizModeBtn = document.getElementById('quiz-mode-btn');
+            
+            // State Management
+            let savedThreads = JSON.parse(localStorage.getItem('kalpvrush_threads')) || [];
+            let currentThreadId = null;
+            let currentHistory = [];
+            let isFirstMessage = true;
+
+            // Modal Elements
+            const renameModal = document.getElementById('rename-modal');
+            const deleteModal = document.getElementById('delete-modal');
+            const renameInput = document.getElementById('rename-input');
+            const toast = document.getElementById('toast');
+            let targetThreadId = null;
+
+            // --- CUSTOM CURSOR LERP ---
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorOutline = document.getElementById('cursor-outline');
+            let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+            let outlineX = mouseX, outlineY = mouseY;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX; mouseY = e.clientY;
+                cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+            });
+            function animateCursor() {
+                outlineX += (mouseX - outlineX) * 0.15;
+                outlineY += (mouseY - outlineY) * 0.15;
+                cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px) translate(-50%, -50%)`;
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            // Interactable hover state
+            const interactables = document.querySelectorAll('.interactable');
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+            });
+
+            // --- THEME & 3D PARALLAX ---
+            themeToggle.addEventListener('click', () => { htmlTag.classList.toggle('dark'); });
+
+            const blobs = document.querySelectorAll('.blob');
+            document.addEventListener('mousemove', (e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 2;
+                const y = (e.clientY / window.innerHeight - 0.5) * 2;
+                blobs.forEach((blob, index) => {
+                    const depth = (index + 1) * 25; 
+                    blob.style.transition = 'transform 0.8s var(--ease-out-expo)';
+                    blob.style.transform = `translate(${-x * depth}px, ${-y * depth}px) scale(1.15)`;
+                });
+            });
+
+            const tiltElements = document.querySelectorAll('.tilt-effect');
+            tiltElements.forEach(elem => {
+                elem.addEventListener('mousemove', (e) => {
+                    const rect = elem.getBoundingClientRect();
+                    const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                    const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -3; 
+                    const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 3;
+                    elem.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
+                });
+                elem.addEventListener('mouseleave', () => { elem.style.transform = ''; });
+            });
+
+            const magnetics = document.querySelectorAll('.magnetic');
+            magnetics.forEach(elem => {
+                elem.addEventListener('mousemove', (e) => {
+                    const rect = elem.getBoundingClientRect();
+                    const distX = (e.clientX - (rect.left + rect.width / 2)) * 0.35;
+                    const distY = (e.clientY - (rect.top + rect.height / 2)) * 0.35;
+                    elem.style.transform = `translate(${distX}px, ${distY}px)`;
+                });
+                elem.addEventListener('mouseleave', () => { elem.style.transform = ''; });
+            });
+
+            function renderSidebarHistory() {
+                const existingItems = document.querySelectorAll('.history-item-nav');
+                existingItems.forEach(item => item.remove());
+
+                const sortedThreads = [...savedThreads].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return b.id - a.id;
+                });
+
+                const sidebar = document.getElementById('sidebar-history-container');
+
+                sortedThreads.forEach(thread => {
+                    const div = document.createElement('div');
+                    div.className = `nav-item interactable history-item-nav ${thread.id === currentThreadId ? 'active' : ''}`;
+                    
+                    div.innerHTML = `
+                        <div class="nav-icon cursor-pointer"><i class="ph ${thread.pinned ? 'ph-push-pin-fill text-apple-blue' : 'ph-chat-teardrop-text'} text-xl"></i></div>
+                        <span class="nav-text cursor-pointer truncate pr-20" style="max-width: 140px;">${thread.title}</span>
+                        <div class="history-actions sidebar-hover-reveal">
+                            <button class="action-btn ${thread.pinned ? 'pin-active' : ''}" title="Pin" onclick="togglePin('${thread.id}', event)"><i class="ph ph-push-pin"></i></button>
+                            <button class="action-btn" title="Rename" onclick="openRename('${thread.id}', '${thread.title.replace(/'/g, "\\'")}', event)"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="action-btn" title="Share" onclick="shareThread('${thread.id}', event)"><i class="ph ph-share-network"></i></button>
+                            <button class="action-btn hover:!text-red-500" title="Delete" onclick="openDelete('${thread.id}', event)"><i class="ph ph-trash"></i></button>
+                        </div>
+                    `;
+                    
+                    div.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                    div.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+                    
+                    div.querySelector('.nav-icon').addEventListener('click', () => loadThread(thread.id));
+                    div.querySelector('.nav-text').addEventListener('click', () => loadThread(thread.id));
+                    
+                    sidebar.appendChild(div);
+                });
+            }
+
+            window.togglePin = (id, e) => { e.stopPropagation(); const thread = savedThreads.find(t => t.id === id); if(thread) thread.pinned = !thread.pinned; saveAndRender(); };
+            window.openRename = (id, currentTitle, e) => { e.stopPropagation(); targetThreadId = id; renameInput.value = currentTitle; renameModal.classList.add('active'); renameInput.focus(); };
+            window.openDelete = (id, e) => { e.stopPropagation(); targetThreadId = id; deleteModal.classList.add('active'); };
+            window.closeModals = () => { renameModal.classList.remove('active'); deleteModal.classList.remove('active'); targetThreadId = null; };
+
+            window.shareThread = (id, e) => {
+                e.stopPropagation();
+                const thread = savedThreads.find(t => t.id === id);
+                if(!thread) return;
+                let shareText = `Chat: ${thread.title}\n\n`;
+                thread.history.forEach(msg => { shareText += `${msg.role === 'user' ? 'You' : 'EduNova'}: ${msg.content}\n\n`; });
+                navigator.clipboard.writeText(shareText).then(() => { showToast("Chat copied to clipboard!"); }).catch(err => {
+                    const textArea = document.createElement("textarea"); textArea.value = shareText; document.body.appendChild(textArea); textArea.select(); document.execCommand("copy"); textArea.remove(); showToast("Chat copied to clipboard!");
+                });
+            };
+
+            function showToast(message) { document.getElementById('toast-message').innerText = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+
+            document.getElementById('confirm-rename-btn').addEventListener('click', () => {
+                const newTitle = renameInput.value.trim();
+                if(newTitle && targetThreadId) { const thread = savedThreads.find(t => t.id === targetThreadId); if(thread) thread.title = newTitle; saveAndRender(); }
+                closeModals();
+            });
+
+            document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+                if(targetThreadId) {
+                    savedThreads = savedThreads.filter(t => t.id !== targetThreadId);
+                    if(currentThreadId === targetThreadId) newChatBtn.click();
+                    saveAndRender();
+                }
+                closeModals();
+            });
+
+            function saveAndRender() { localStorage.setItem('kalpvrush_threads', JSON.stringify(savedThreads)); renderSidebarHistory(); }
+
+            function loadThread(id) {
+                const thread = savedThreads.find(t => t.id === id);
+                if(!thread) return;
+                currentThreadId = id; currentHistory = [...thread.history];
+                const messages = chatContentWrap.querySelectorAll('.message-row:not(:first-child)');
+                messages.forEach(msg => msg.remove());
+                transitionToChat();
+                currentHistory.forEach(msg => { appendMessage(msg.content, msg.role === 'user' ? 'user' : 'bot', false); });
+                renderSidebarHistory();
+            }
+
+            newChatBtn.addEventListener('click', () => {
+                if (isFirstMessage && currentHistory.length === 0) return;
+                currentThreadId = null; currentHistory = []; isFirstMessage = true;
+                const messages = chatContentWrap.querySelectorAll('.message-row:not(:first-child)');
+                messages.forEach(msg => msg.remove());
+                heroSection.classList.remove('hidden-hero');
+                inputWrapper.classList.remove('input-state-bottom');
+                inputWrapper.classList.add('input-state-center');
+                chatArea.classList.remove('active');
+                userInput.value = ''; micIcon.classList.remove('hidden'); sendIcon.classList.add('hidden');
+                renderSidebarHistory();
+            });
+
+            userInput.addEventListener('input', () => {
+                if (userInput.value.trim().length > 0) { micIcon.classList.add('hidden'); sendIcon.classList.remove('hidden'); } 
+                else { micIcon.classList.remove('hidden'); sendIcon.classList.add('hidden'); }
+            });
+
+            function transitionToChat() {
+                if (isFirstMessage) {
+                    heroSection.classList.add('hidden-hero');
+                    inputWrapper.classList.remove('input-state-center');
+                    inputWrapper.classList.add('input-state-bottom');
+                    chatArea.classList.add('active');
+                    isFirstMessage = false;
+                }
+            }
+
+            // Markdown Parser for rich UI
+            function parseMarkdown(text) {
+                return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+            }
+
+            function appendMessage(text, sender, animate = true) {
+                const rowDiv = document.createElement('div');
+                rowDiv.classList.add('message-row', sender);
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.classList.add('bubble');
+                bubbleDiv.classList.add(sender === 'user' ? 'bubble-user' : 'bubble-bot');
+                if(!animate) bubbleDiv.style.animation = 'none';
+                bubbleDiv.style.opacity = '1'; bubbleDiv.style.transform = 'scale(1) translateY(0)';
+                bubbleDiv.innerHTML = parseMarkdown(text);
+                rowDiv.appendChild(bubbleDiv);
+                chatContentWrap.appendChild(rowDiv);
+                scrollToBottom();
+            }
+
+            function showTyping() {
+                const rowDiv = document.createElement('div'); rowDiv.id = 'typing-indicator'; rowDiv.classList.add('message-row', 'bot');
+                const bubbleDiv = document.createElement('div'); bubbleDiv.classList.add('bubble', 'bubble-bot', 'typing-bubble');
+                bubbleDiv.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+                rowDiv.appendChild(bubbleDiv); chatContentWrap.appendChild(rowDiv); scrollToBottom();
+                return rowDiv;
+            }
+
+            function scrollToBottom() { setTimeout(() => { chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' }); }, 100); }
+
+            async function getBotResponse(message) {
+                try {
+                    // Connected to deployed Render URL
+                    const res = await fetch('https://nexora-backend-8ssg.onrender.com/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message, history: currentHistory }) 
+                    });
+                    
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    const data = await res.json();
+                    return data.response;
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    return "EduNova is currently offline. Please check if the backend server is running.";
+                }
+            }
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const text = userInput.value.trim();
+                if (!text) return;
+
+                const inputContainer = document.querySelector('.input-glow-container');
+                inputContainer.classList.add('recoil');
+                setTimeout(() => inputContainer.classList.remove('recoil'), 150);
+
+                transitionToChat();
+                
+                if (!currentThreadId) {
+                    currentThreadId = Date.now().toString();
+                    const title = text.split(' ').slice(0, 4).join(' ') + '...';
+                    savedThreads.unshift({ id: currentThreadId, title: title, history: [], pinned: false });
+                }
+
+                userInput.value = ''; micIcon.classList.remove('hidden'); sendIcon.classList.add('hidden');
+                
+                appendMessage(text, 'user');
+                currentHistory.push({ role: "user", content: text });
+                
+                const typingNode = showTyping();
+                const reply = await getBotResponse(text);
+                
+                typingNode.remove();
+                appendMessage(reply, 'bot');
+                currentHistory.push({ role: "assistant", content: reply });
+                
+                const threadIndex = savedThreads.findIndex(t => t.id === currentThreadId);
+                if (threadIndex !== -1) { savedThreads[threadIndex].history = [...currentHistory]; saveAndRender(); }
+            });
+
+            quizModeBtn.addEventListener('click', () => {
+                if(currentHistory.length === 0) { userInput.value = "Start a quiz about a random tech or science topic!"; } 
+                else { userInput.value = "Give me a quick 3-question Quiz based on our conversation so far!"; }
+                micIcon.classList.add('hidden'); sendIcon.classList.remove('hidden');
+                chatForm.dispatchEvent(new Event('submit'));
+            });
+            
+            document.getElementById('send-btn').addEventListener('click', (e) => {
+                if(userInput.value.trim().length === 0) { e.preventDefault(); userInput.focus(); }
+            });
+            
+            renderSidebarHistory();
+        });
+    </script>
+</body>
+</html>
