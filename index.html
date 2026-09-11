@@ -218,7 +218,7 @@
                             </button>
                         </div>
                         
-                        <input type="text" id="user-input" class="interactable search-input glass-panel" style="padding-left: 64px; padding-right: 64px;" placeholder="Ask EduNova or type a topic..." autocomplete="off">
+                        <input type="text" id="user-input" class="interactable search-input glass-panel" style="padding-left: 64px; padding-right: 64px;" placeholder="Ask Nexora or type a topic..." autocomplete="off">
                         
                         <div class="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
                             <button type="submit" id="send-btn" class="interactable text-gray-400 hover:text-green-500 transition-colors cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 magnetic">
@@ -406,7 +406,7 @@
                 const thread = savedThreads.find(t => t.id === id);
                 if(!thread) return;
                 let shareText = `Chat: ${thread.title}\n\n`;
-                thread.history.forEach(msg => { shareText += `${msg.role === 'user' ? 'You' : 'EduNova'}: ${msg.content}\n\n`; });
+                thread.history.forEach(msg => { shareText += `${msg.role === 'user' ? 'You' : 'Nexora'}: ${msg.content}\n\n`; });
                 navigator.clipboard.writeText(shareText).then(() => { showToast("Chat copied to clipboard!"); }).catch(err => {
                     const textArea = document.createElement("textarea"); textArea.value = shareText; document.body.appendChild(textArea); textArea.select(); document.execCommand("copy"); textArea.remove(); showToast("Chat copied to clipboard!");
                 });
@@ -513,7 +513,7 @@
                     return data.response;
                 } catch (error) {
                     console.error("Fetch Error:", error);
-                    return "EduNova is currently offline. Please check if the backend server is running.";
+                    return "Nexora is currently offline. Please check if the backend server is running.";
                 }
             }
 
